@@ -1,0 +1,15 @@
+version: "3"
+services:
+  nginx:
+    build:
+      dockerfile: ./dockerfile
+      context: .
+    image: nginx
+    container_name: nginx
+    ports:
+        - 8000:80
+        - 443:443
+    restart: unless-stopped
+networks:
+    docker_network:
+        driver: bridge

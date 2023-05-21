@@ -1,26 +1,42 @@
 version: "3"
 services:
-  # languagetool:
-  #   image: erikvl87/languagetool
-  #   container_name: languagetool
-  #   environment:
-  #     - langtool_languageModel=/ngrams
-  #     - Java_Xms=512m
-  #     - Java_Xmx=1g
-  #   volumes:
-  #     - ./volumes/ngrams:/ngrams
-  #   restart: unless-stopped
-  nginx:
-    image: jonasal/nginx-certbot:latest
-    container_name: nginx-proxy
+  traefik:
+    image: traefik:latest
+    container_name: traefik-service
     ports:
       - 80:80
       - 443:443
-    environment:
-      - CERTBOT_EMAIL=mikael.souza.cc@gmail.com
-      - DEBUG=1
-      - STAGING=1
+      - 8080:8080
     restart: unless-stopped
     volumes:
-      - ./volumes/nginx/conf:/etc/nginx/conf.d/:ro
-      - ./volumes/nginx/secrets:/etc/letsencrypt
+      - ./volumes/traefik/etc/traefik:/etc/traefik
+      - ./volumes/traefik/ssl-certs:/ssl-certs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  languagetool:
+    image: erikvl87/languagetool
+    container_name: languagetool-service
+    ports:
+      - 8010:8010
+    restart: unless-stopped
+    volumes:
+      - ./volumes/languagetool/ngrams:/ngrams
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.languagetool.entrypoints=websecure"
+      - "traefik.http.routers.languagetool.rule=Host(`languagetool.oracle-arm.webmikas.com`)"
+      - "traefik.http.routers.languagetool.tls.certResolver=production"
+    environment:
+      - langtool_languageModel=/ngrams
+      - Java_Xms=512m
+      - Java_Xmx=1g
+  whoami:
+    image: "traefik/whoami"
+    container_name: "whoami-service"
+    ports:
+      - 80:80
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.oracle-arm.webmikas.com`)"
+      - "traefik.http.routers.whoami.tls.certResolver=production"

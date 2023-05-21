@@ -1,0 +1,23 @@
+version: "3"
+services:
+  languagetool:
+    image: erikvl87/languagetool
+    container_name: languagetool
+    environment:
+      - langtool_languageModel=/ngrams
+      - Java_Xms=512m
+      - Java_Xmx=1g
+    volumes:
+      - ./volumes/ngrams:/ngrams
+    restart: unless-stopped
+  nginx:
+    build:
+      dockerfile: ./docker/nginx.Dockerfile
+      context: .
+    container_name: nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+    volumes:
+      - ./volumes/nginx/conf:/etc/nginx/conf.d/:ro

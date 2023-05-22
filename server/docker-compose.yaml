@@ -38,3 +38,16 @@ services:
       - "traefik.http.routers.whoami.entrypoints=websecure"
       - "traefik.http.routers.whoami.rule=Host(`whoami.oracle-arm.webmikas.com`)"
       - "traefik.http.routers.whoami.tls.certResolver=production"
+  # portainer:
+  #   image: portainer/portainer-ce
+  #   container_name: portainer-service
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ./volumes/portainer:/data
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.portainer.entrypoints.websecure"
+  #     - "traefik.http.routers.portainer.rule=Host(`portainer.oracle-arm.webmikas.com`)"
+  #     - "traefik.http.routers.portainer.tls.certResolver=production"
+  #     - "traefik.http.services.portainer.loadbalancer.server.port=9000"

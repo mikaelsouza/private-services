@@ -38,16 +38,24 @@ services:
       - "traefik.http.routers.whoami.entrypoints=websecure"
       - "traefik.http.routers.whoami.rule=Host(`whoami.oracle-arm.webmikas.com`)"
       - "traefik.http.routers.whoami.tls.certResolver=production"
-  # portainer:
-  #   image: portainer/portainer-ce
-  #   container_name: portainer-service
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock:ro
-  #     - ./volumes/portainer:/data
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.portainer.entrypoints.websecure"
-  #     - "traefik.http.routers.portainer.rule=Host(`portainer.oracle-arm.webmikas.com`)"
-  #     - "traefik.http.routers.portainer.tls.certResolver=production"
-  #     - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+  webdav:
+    image: "derkades/webdav"
+    container_name: "webdav_service"
+    environment:
+      USERNAME: mikael
+    restart: unless-stopped
+    entrypoint: [ 'bash', '-c', 'export PASSWORD=$$(cat /var/run/secrets/webdav_password) ; source /entrypoint.sh' ]
+    ports:
+      - 8020:80
+    volumes:
+      - ./volumes/webdav/files:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webdav.entrypoints=websecure"
+      - "traefik.http.routers.webdav.rule=Host(`webdav.oracle-arm.webmikas.com`)"
+      - "traefik.http.routers.webdav.tls.certResolver=production"
+    secrets:
+      - webdav_password
+secrets:
+  webdav_password:
+    file: secrets/webdav_password.txt

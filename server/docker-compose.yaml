@@ -1,17 +1,28 @@
-version: "3"
+version: '3.8'
 services:
-  traefik:
-    image: traefik:latest
-    container_name: traefik-service
-    ports:
-      - 80:80
-      - 443:443
-      - 8080:8080
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: "nginx-proxy-manager"
     restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
     volumes:
-      - ./volumes/traefik/etc/traefik:/etc/traefik
-      - ./volumes/traefik/ssl-certs:/ssl-certs
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./volumes/nginx-manager/data:/data
+      - ./volumes/nginx-manager/letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy_manager
+
+  whoami:
+    image: "traefik/whoami"
+    container_name: "whoami-service"
+    restart: unless-stopped
+    ports:
+      - '8000:80'
+    networks:
+      - proxy_manager
+
   languagetool:
     image: erikvl87/languagetool
     container_name: languagetool-service
@@ -20,27 +31,16 @@ services:
     restart: unless-stopped
     volumes:
       - ./volumes/languagetool/ngrams:/ngrams
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.languagetool.entrypoints=websecure"
-      - "traefik.http.routers.languagetool.rule=Host(`languagetool.oracle-arm.webmikas.com`)"
-      - "traefik.http.routers.languagetool.tls.certResolver=production"
     environment:
       - langtool_languageModel=/ngrams
       - Java_Xms=512m
       - Java_Xmx=1g
-  whoami:
-    image: "traefik/whoami"
-    container_name: "whoami-service"
-    restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.whoami.entrypoints=websecure"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.oracle-arm.webmikas.com`)"
-      - "traefik.http.routers.whoami.tls.certResolver=production"
+    networks:
+      - proxy_manager
+
   webdav:
-    image: "derkades/webdav"
-    container_name: "webdav_service"
+    image: derkades/webdav
+    container_name: webdav-service
     environment:
       USERNAME: mikael
     restart: unless-stopped
@@ -49,13 +49,15 @@ services:
       - 8020:80
     volumes:
       - ./volumes/webdav/files:/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.webdav.entrypoints=websecure"
-      - "traefik.http.routers.webdav.rule=Host(`webdav.oracle-arm.webmikas.com`)"
-      - "traefik.http.routers.webdav.tls.certResolver=production"
     secrets:
       - webdav_password
+    networks:
+      - proxy_manager
+
 secrets:
   webdav_password:
     file: secrets/webdav_password.txt
+
+networks:
+  proxy_manager:
+    name: proxy_manager

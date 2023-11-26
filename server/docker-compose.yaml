@@ -14,15 +14,6 @@ services:
     networks:
       - proxy_manager
 
-  whoami:
-    image: "traefik/whoami"
-    container_name: "whoami-service"
-    restart: unless-stopped
-    ports:
-      - '8000:80'
-    networks:
-      - proxy_manager
-
   languagetool:
     image: erikvl87/languagetool
     container_name: languagetool-service

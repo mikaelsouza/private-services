@@ -1,27 +1,27 @@
 version: '3.8'
 services:
   nginx-proxy-manager:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: "nginx-proxy-manager"
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager-service
     restart: unless-stopped
     ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
+      - 80:80
+      - 81:81
+      - 443:443
     volumes:
-      - ./volumes/nginx-manager/data:/data
-      - ./volumes/nginx-manager/letsencrypt:/etc/letsencrypt
+      - /docker/volumes/nginx-manager/data:/data
+      - /docker/volumes/nginx-manager/letsencrypt:/etc/letsencrypt
     networks:
       - proxy_manager
 
   languagetool:
-    image: erikvl87/languagetool
+    image: erikvl87/languagetool:latest
     container_name: languagetool-service
     ports:
       - 8010:8010
     restart: unless-stopped
     volumes:
-      - ./volumes/languagetool/ngrams:/ngrams
+      - /docker/volumes/languagetool/ngrams:/ngrams
     environment:
       - langtool_languageModel=/ngrams
       - Java_Xms=512m
@@ -30,25 +30,28 @@ services:
       - proxy_manager
 
   webdav:
-    image: derkades/webdav
+    image: derkades/webdav:latest
     container_name: webdav-service
     environment:
       USERNAME: mikael
     restart: unless-stopped
-    entrypoint: [ 'bash', '-c', 'export PASSWORD=$$(cat /var/run/secrets/webdav_password) ; source /entrypoint.sh' ]
+    entrypoint:
+      [
+        'bash',
+        '-c',
+        'export PASSWORD=$$(cat /var/run/secrets/webdav_password) ; source /entrypoint.sh'
+      ]
     ports:
       - 8020:80
     volumes:
-      - ./volumes/webdav/files:/data
+      - /docker/volumes/webdav/files:/data
     secrets:
       - webdav_password
     networks:
       - proxy_manager
-
 secrets:
   webdav_password:
-    file: secrets/webdav_password.txt
-
+    file: /docker/secrets/webdav_password.txt
 networks:
   proxy_manager:
     name: proxy_manager

@@ -25,18 +25,18 @@ services:
       [
         "bash",
         "-c",
-        "export PASSWORD=$$(cat /var/run/secrets/webdav_password) ; source /entrypoint.sh",
+        "export PASSWORD=$$(cat /run/secrets/webdav_secret) ; source /entrypoint.sh",
       ]
     ports:
       - 8020:80
     volumes:
       - /docker/volumes/webdav/files:/data
     secrets:
-      - webdav_password
+      - webdav_secret
     networks:
       - main_services
 secrets:
-  webdav_password:
+  webdav_secret:
     file: /docker/secrets/webdav
 networks:
   main_services:

@@ -17,7 +17,9 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared-service
-    command: tunnel --no-autoupdate run --token $$(cat /var/run/secrets/cloudflare_token)
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=$(cat /run/secret/cloudflare_token)
     secrets:
       - cloudflare_token
     networks:
@@ -60,9 +62,9 @@ services:
       - proxy_manager
 secrets:
   webdav_password:
-    file: /docker/secrets/webdav_password.txt
+    file: /docker/secrets/webdav
   cloudflare_token:
-    file: /docker/secrets/cloudflare_token.txt
+    file: /docker/secrets/cloudflared
 networks:
   proxy_manager:
     name: proxy_manager

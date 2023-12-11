@@ -14,6 +14,15 @@ services:
     networks:
       - proxy_manager
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-service
+    command: tunnel --no-autoupdate run --token $$(cat /var/run/secrets/cloudflare_token)
+    secrets:
+      - cloudflare_token
+    networks:
+      - proxy_manager
+
   languagetool:
     image: erikvl87/languagetool:latest
     container_name: languagetool-service
@@ -52,6 +61,8 @@ services:
 secrets:
   webdav_password:
     file: /docker/secrets/webdav_password.txt
+  cloudflare_token:
+    file: /docker/secrets/cloudflare_token.txt
 networks:
   proxy_manager:
     name: proxy_manager

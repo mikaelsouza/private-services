@@ -1,57 +1,54 @@
-version: '3'
+version: "3"
 
 services:
   woodpecker-server:
     image: woodpeckerci/woodpecker-server:latest
+    restart: unless-stopped
     container_name: woodpecker-server
     ports:
       - 8030:8000
       - 8031:9000
-    entrypoint:
-      - /bin/woodpecker-server
-      - --server-host
-      - https://woodpecker.webmikas.com
-      - --github-secret
-      - $(cat /run/secrets/woodpecker_github_secret)
-      - --agent-secret
-      - $(cat /run/secrets/woodpecker_agent_secret)
     volumes:
       - /docker/volumes/woodpecker-server-data:/var/lib/woodpecker/
     environment:
       - WOODPECKER_OPEN=true
+      - WOODPECKER_HOST=https://woodpecker.webmikas.com
       - WOODPECKER_GITHUB=true
-      - WOODPECKER_GITHUB_CLIENT=f8cf40e5df67f2d08d4e
-    secrets:
-      - woodpecker_agent_secret
-      - woodpecker_github_secret
+      - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT}
+      - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET}
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
     networks:
       - woodpecker
 
-  woodpecker-agent:
+  woodpecker-agent-arm:
     image: woodpeckerci/woodpecker-agent:latest
-    container_name: woodpecker-agent
-    entrypoint: 
-      - /bin/woodpecker-agent
-      - --server
-      - woodpecker-server:9000
-      - --grpc-token 
-      - $(cat /run/secrets/woodpecker_agent_secret)
-    restart: always
+    container_name: woodpecker-agent-arm
+    restart: unless-stopped
     depends_on:
       - woodpecker-server
     volumes:
       - /docker/volumes/woodpecker-agent-data:/etc/woodpecker
       - /var/run/docker.sock:/var/run/docker.sock
-    secrets:
-      - woodpecker_agent_secret
+    environment:
+      - WOODPECKER_SERVER=woodpecker-server:9000
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
     networks:
       - woodpecker
 
-secrets:
-  woodpecker_agent_secret:
-    file: /docker/secrets/woodpecker-agent-secret
-  woodpecker_github_secret:
-    file: /docker/secrets/woodpecker-github-secret
+  woodpecker-agent-x86:
+    image: woodpeckerci/woodpecker-agent:latest
+    container_name: woodpecker-agent-x86
+    restart: unless-stopped
+    extra_hosts:
+      - arm:10.0.0.196
+    volumes:
+      - /docker/volumes/woodpecker-agent-data:/etc/woodpecker
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WOODPECKER_SERVER=arm:8031
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+    networks:
+      - woodpecker
 
 networks:
   woodpecker:

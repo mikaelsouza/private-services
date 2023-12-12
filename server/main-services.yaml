@@ -20,24 +20,15 @@ services:
     container_name: webdav-service
     environment:
       - USERNAME=mikael
+      - PASSWORD=${PASSWORD}
     restart: unless-stopped
-    entrypoint:
-      [
-        "bash",
-        "-c",
-        "export PASSWORD=$$(cat /run/secrets/webdav_secret) ; source /entrypoint.sh",
-      ]
     ports:
       - 8020:80
     volumes:
       - /docker/volumes/webdav/files:/data
-    secrets:
-      - webdav_secret
     networks:
       - main_services
-secrets:
-  webdav_secret:
-    file: /docker/secrets/webdav
+
 networks:
   main_services:
     name: main_services

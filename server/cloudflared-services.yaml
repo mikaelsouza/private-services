@@ -2,16 +2,13 @@ version: "3.8"
 services:
   cloudflared:
     image: cloudflare/cloudflared
-    container_name: cloudflared-service
+    container_name: cloudflared-tunnel-service
     restart: unless-stopped
     networks:
       - cloudflared_tunnel_network
-    secrets:
-      - cloudflared_secret
-    command: tunnel --credentials-file /run/secrets/cloudflared_secret run webmikas
-secrets:
-  cloudflared_secret:
-    file: /docker/secrets/cloudflared
+    command: tunnel run --token $CF_TOKEN
+    environment:
+      - CF_TOKEN=$CF_TOKEN
 networks:
   cloudflared_tunnel_network:
     name: cloudflared_tunnel_network
